@@ -72,7 +72,7 @@ class AuthController extends Controller
             'activitylogs' => 'User logged in: ' . $user->email,
             'action' => 'LOGIN'
         ]);
-        
+
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
@@ -93,6 +93,20 @@ class AuthController extends Controller
             'username' => $user->username,
         ]);
     }
+    public function showRaw(Request $request)
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'first_name'     => $user->first_name,
+            'middle_name'    => $user->middle_name,
+            'last_name'      => $user->last_name,
+            'contact_number' => $user->contact_number,
+            'username'       => $user->username,
+            'email'          => $user->email,
+        ]);
+    }
+
     public function allUsers(Request $request)
     {
         $user = $request->user();
@@ -105,12 +119,14 @@ class AuthController extends Controller
             return response()->json(['error' => 'Forbidden - Admins only'], 403);
         }
 
+        // Get paginated users excluding the current admin
         $users = User::where('id', '!=', $user->id)
             ->orderBy('created_at', 'desc')
-            ->get(['first_name', 'middle_name', 'last_name', 'username', 'email', 'contact_number', 'created_at']);
+            ->paginate(10, ['first_name', 'middle_name', 'last_name', 'username', 'email', 'contact_number', 'created_at']);
 
-        $users = $users->map(function ($u) {
-            $fullName = trim($u->first_name . ' ' . ($u->middle_name ? $u->middle_name . ' ' : '') . $u->last_name);
+        // Map full name into each user record
+        $users->getCollection()->transform(function ($u) {
+            $fullName = $u->first_name . ' ' . ($u->middle_name ? $u->middle_name . ' ' : '') . $u->last_name;
             return [
                 'fullname'       => $fullName,
                 'username'       => $u->username,
@@ -120,11 +136,9 @@ class AuthController extends Controller
             ];
         });
 
-        return response()->json([
-            'message' => 'All users retrieved successfully',
-            'users'   => $users,
-        ]);
+        return response()->json($users);
     }
+
 
 
 
@@ -132,7 +146,6 @@ class AuthController extends Controller
     public function update(Request $request)
     {
         $user = $request->user();
-
 
         $validated = $request->validate([
             'first_name'      => 'sometimes|string|max:255',
@@ -142,22 +155,22 @@ class AuthController extends Controller
             'contact_number'  => 'sometimes|string|max:20',
         ]);
 
-
         $user->update($validated);
-
-
-        $fullName = trim($user->first_name . ' ' . ($user->middle_name ? $user->middle_name . ' ' : '') . $user->last_name);
 
         return response()->json([
             'message' => 'Profile updated successfully',
             'user' => [
-                'fullname'       => $fullName,
-                'email'          => $user->email,
+                'first_name'     => $user->first_name,
+                'middle_name'    => $user->middle_name,
+                'last_name'      => $user->last_name,
                 'username'       => $user->username,
                 'contact_number' => $user->contact_number,
+                'email'          => $user->email,
             ],
         ]);
     }
+
+
 
     public function logout(Request $request)
     {

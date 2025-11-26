@@ -25,4 +25,10 @@ class Image extends Model
     {
         return $this->path ? asset('storage/' . $this->path) : null;
     }
+
+    // In App\Models\Image.php
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

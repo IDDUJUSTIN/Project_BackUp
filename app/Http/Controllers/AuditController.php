@@ -15,25 +15,29 @@ class AuditController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
-        $user = $request->user();
+   public function index(Request $request)
+{
+    $user = $request->user();
 
-        if (! $user) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        if ($user->role !== 'admin') {
-            return response()->json(['error' => 'Forbidden - Admins only'], 403);
-        }
-
-        // Admins see all logs, with user relationship
-        $logs = Auditlogs::with('user')
-            ->latest()
-            ->get();
-
-        return response()->json(['data' => $logs]);
+    if (! $user) {
+        return response()->json(['error' => 'Unauthorized'], 403);
     }
+
+    if ($user->role !== 'admin') {
+        return response()->json(['error' => 'Forbidden - Admins only'], 403);
+    }
+
+    // Get page number from query string (default to 1)
+    $page = $request->query('page', 1);
+
+    // Paginate 10 logs per page
+    $logs = Auditlogs::with('user')
+        ->latest()
+        ->paginate(10, ['*'], 'page', $page);
+
+    return response()->json($logs);
+}
+
 
     public function show(Auditlogs $auditLogs)
     {

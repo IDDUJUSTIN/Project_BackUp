@@ -52,9 +52,8 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function location()
+    public function locations()
     {
-        return $this->belongsTo(Location::class);
+        return $this->hasMany(Location::class);
     }
-    
 }

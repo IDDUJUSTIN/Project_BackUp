@@ -77,27 +77,34 @@ class PredictionController extends Controller
 
 
     public function list(Request $request)
-    {
-        $perPage = 10;
-        $user = $request->user();
+{
+    $perPage = 10;
+    $user = $request->user();
 
-        if (! $user) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        $query = Image::query();
-
-        // If not admin, restrict to own records
-        if ($user->role !== 'admin') {
-            $query->where('user_id', $user->id);
-        }
-
-        $images = $query->orderBy('created_at', 'desc')
-            ->select( 'path', 'prediction', 'confidence_level', 'created_at')
-            ->paginate($perPage);
-
-        return response()->json($images);
+    if (! $user) {
+        return response()->json(['error' => 'Unauthorized'], 403);
     }
+
+    $query = Image::query()
+        ->join('users', 'images.user_id', '=', 'users.id'); 
+
+    if ($user->role !== 'admin') {
+        $query->where('images.user_id', $user->id);
+    }
+
+    $images = $query->orderBy('images.created_at', 'desc')
+        ->select(
+            'images.path',
+            'images.prediction',
+            'images.confidence_level',
+            'images.created_at',
+            'users.username' 
+        )
+        ->paginate($perPage);
+
+    return response()->json($images);
+}
+
 
 
    public function show(Request $request, $id)
@@ -108,15 +115,12 @@ class PredictionController extends Controller
         return response()->json(['error' => 'Unauthorized'], 403);
     }
 
-    // Build query
     $query = Image::query();
 
-    // If not admin, restrict to own record
     if ($user->role !== 'admin') {
         $query->where('user_id', $user->id);
     }
 
-    // Find the record by ID
     $img = $query->findOrFail($id);
 
     return response()->json([
