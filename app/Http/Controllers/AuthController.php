@@ -106,6 +106,25 @@ class AuthController extends Controller
             'email'          => $user->email,
         ]);
     }
+    
+    public function searchByEmail(Request $request)
+    {
+        $email = $request->query('email');
+
+        if ($email) {
+            // Partial match using LIKE
+            $users = User::where('email', 'like', "%{$email}%")->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $users,
+            ]);
+        }
+        $users = User::paginate(10);
+
+        return response()->json($users);
+    }
+
 
     public function allUsers(Request $request)
     {

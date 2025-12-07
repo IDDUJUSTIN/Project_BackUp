@@ -147,8 +147,6 @@ class PredictionController extends Controller
         if ($user->role !== 'admin') {
             $query->where('user_id', $user->id);
         }
-
-        // Group by prediction and count
         $counts = $query->select('prediction', DB::raw('COUNT(*) as total'))
             ->groupBy('prediction')
             ->get();
@@ -160,4 +158,33 @@ class PredictionController extends Controller
             'breakdown' => $counts,
         ]);
     }
+    public function monthlyStats(Request $request)
+{
+    $user = $request->user();
+
+    if (! $user) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $query = Image::query();
+
+    if ($user->role !== 'admin') {
+        $query->where('user_id', $user->id);
+    }
+
+    // Group by month and prediction
+    $counts = $query->select(
+            DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
+            'prediction',
+            DB::raw('COUNT(*) as total')
+        )
+        ->groupBy('month', 'prediction')
+        ->orderBy('month')
+        ->get();
+
+    return response()->json([
+        'breakdown' => $counts
+    ]);
+}
+
 }

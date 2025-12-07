@@ -7,6 +7,7 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\GetWeatherController;
+use App\Http\Controllers\UserActionController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -20,11 +21,13 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/weather', [GetWeatherController::class, 'history']);
     Route::post('/weather', [GetWeatherController::class, 'show']);
+    Route::put('/weather/{id}', [GetWeatherController::class, 'update']);
 
     Route::post('/predict', [PredictionController::class, 'predict']);
     Route::get('/descriptive', [PredictionController::class, 'list']);
     Route::get('/images/{id}', [PredictionController::class, 'show']);
     Route::get('/stats', [PredictionController::class, 'stats']);
+    Route::get('/mstat', [PredictionController::class, 'monthlyStats']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'show']);
@@ -34,5 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::prefix('admin')->group(function () {
         Route::get('/users', [AuthController::class, 'allUsers']);
         Route::get('/activity-logs', [AuditController::class, 'index']);
+        Route::get('/users/search', [AuthController::class, 'searchByEmail']);
+        Route::get('/activity-logs/search', [AuditController::class, 'searchByUsername']);
+        Route::get('/user-actions/search', [UserActionController::class, 'search']);
+        Route::get('/user-actions', [UserActionController::class, 'index']);
     });
 });

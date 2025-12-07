@@ -56,4 +56,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Location::class);
     }
+      protected $appends = ['fullname'];
+
+    public function getFullnameAttribute()
+    {
+        return "{$this->first_name} " . 
+               ($this->middle_name ? "{$this->middle_name} " : "") . 
+               "{$this->last_name}";
+    }
+
+    
 }
