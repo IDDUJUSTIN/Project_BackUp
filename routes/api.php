@@ -17,7 +17,6 @@ Route::post('/login', [AuthController::class, 'login']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
-
     
     Route::get('/weather', [GetWeatherController::class, 'history']);
     Route::post('/weather', [GetWeatherController::class, 'show']);

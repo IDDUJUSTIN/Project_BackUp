@@ -29,8 +29,6 @@ class AuthController extends Controller
                 'regex:/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/'
             ],
         ]);
-
-
         $user = User::create([
             'first_name'     => $data['first_name'],
             'middle_name'    => $data['middle_name'],
@@ -112,7 +110,6 @@ class AuthController extends Controller
         $email = $request->query('email');
 
         if ($email) {
-            // Partial match using LIKE
             $users = User::where('email', 'like', "%{$email}%")->get();
 
             return response()->json([
@@ -138,12 +135,11 @@ class AuthController extends Controller
             return response()->json(['error' => 'Forbidden - Admins only'], 403);
         }
 
-        // Get paginated users excluding the current admin
         $users = User::where('id', '!=', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(10, ['first_name', 'middle_name', 'last_name', 'username', 'email', 'contact_number', 'created_at']);
 
-        // Map full name into each user record
+        
         $users->getCollection()->transform(function ($u) {
             $fullName = $u->first_name . ' ' . ($u->middle_name ? $u->middle_name . ' ' : '') . $u->last_name;
             return [

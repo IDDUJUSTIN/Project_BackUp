@@ -20,7 +20,7 @@ class GetWeatherController extends Controller
             return response()->json(['error' => 'Province and City are required'], 400);
         }
 
-        // Always geocode with city + province (barangay is too granular for OpenWeather)
+        
         $locationString = "{$city},{$province},PH";
 
         $geoUrl = "http://api.openweathermap.org/geo/1.0/direct?q={$locationString}&limit=1&appid={$apiKey}";
@@ -37,8 +37,8 @@ class GetWeatherController extends Controller
         $lat = $geoData[0]['lat'];
         $lon = $geoData[0]['lon'];
 
-        // Save to DB (user_locations table)
-        $user = $request->user(); // Sanctum authenticated user
+      
+        $user = $request->user(); 
         $savedLocation = Location::create([
             'user_id'   => $user->id,
             'province'  => $province,
@@ -48,7 +48,6 @@ class GetWeatherController extends Controller
             'longitude' => $lon,
         ]);
 
-        // Weather request (optional, still return weather info)
         $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric";
         $weatherRes = Http::withOptions(['verify' => false])->get($weatherUrl);
 
@@ -78,7 +77,6 @@ class GetWeatherController extends Controller
             'barangay' => 'required|string',
         ]);
 
-        // Find the location record for this user
         $location = Location::where('id', $id)
             ->where('user_id', auth()->id())
             ->first();
@@ -90,13 +88,10 @@ class GetWeatherController extends Controller
                 'user_id' => auth()->id()
             ], 404);
         }
-
-        // Update the location fields
         $location->province = $request->province;
         $location->city     = $request->city;
         $location->barangay = $request->barangay;
 
-        // Geocode again using OpenWeather
         $apiKey = config('services.openweather.key');
         $locationString = "{$request->city},{$request->province},PH";
 
@@ -118,7 +113,6 @@ class GetWeatherController extends Controller
         $location->longitude = $lon;
         $location->save();
 
-        // Fetch updated weather
         $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric";
         $weatherRes = Http::withOptions(['verify' => false])->get($weatherUrl);
 

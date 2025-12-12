@@ -16,12 +16,8 @@ class Location extends Model
         'barangay',
         'latitude',
         'longitude',
-        'user_id', // include user_id so you can mass-assign
+        'user_id',
     ];
-
-    /**
-     * A location belongs to a user.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);

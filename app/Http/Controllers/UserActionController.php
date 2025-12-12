@@ -8,12 +8,8 @@ use Illuminate\Support\Facades\Auth;
 
 class UserActionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        // Check if the authenticated user is an admin
         if (!Auth::check() || Auth::user()->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
